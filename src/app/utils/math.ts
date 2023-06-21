@@ -12,3 +12,6 @@ export function haversineDistance(lat1: number, lon1: number, lat2: number, lon2
 export function degToRad(deg: number): number {
   return deg * (Math.PI / 180);
 }
+export function unionSet<T>(set1:Set<T>, set2:Set<T>): Set<T> {
+  return new Set([...set1, ...set2]);
+}

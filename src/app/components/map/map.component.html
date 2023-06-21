@@ -5,3 +5,65 @@
   <div><span style='background-color: #FFA500;'></span>Средняя (5-10)</div>
   <div><span style='background-color: #FF0000;'></span>Высокая (>10)</div>
 </div>
+
+<p-sidebar [(visible)]="displaySidebar" position="left" [fullScreen]="false" [modal]="false">
+  <ng-template pTemplate="header">
+    <div style="width: 90%; display: flex; justify-content: space-evenly;">
+      <div class="blue-bar"></div>
+      <div>
+        <img style="margin-left: auto;" width="60" height="40" src="assets/logo_snow_plow_truck_frnt.jpg" alt="">
+      </div>
+    </div>
+    <div style="width: 100%">
+      Меню
+    </div>
+
+
+  </ng-template>
+
+
+  <ng-template pTemplate="content">
+    <div class="card flex justify-content-center">
+      <h3 class="centered-button">Маршруты</h3>
+      <p-scrollPanel [style]="{ width: '100%', height:'70vh' }" styleClass="custombar1">
+        <div *ngIf="routes.length > 0; else textNoRoutes">
+        <div *ngFor="let route of routes; let i = index">
+          <p-card>
+            <div class="route-wrapper">
+              <div class="route-info">
+                <b>Маршрут {{i + 1}}</b>
+              </div>
+              <div class="route-indicator" [style.background-color]="colors[i]"></div>
+            </div>
+            <div>Эффективность уборки</div>
+            <p-progressBar [value]="route.efficacy" [showValue]="true"></p-progressBar>
+            <h4> Перекрытие другими маршрутами:</h4>
+            <p-progressBar [value]="route.overlay" [showValue]="true"></p-progressBar>
+
+            <h4> Часы работы: {{ route.hours }}</h4>
+          </p-card>
+          <hr>
+        </div>
+        </div>
+
+        <ng-template #textNoRoutes>
+          Похоже, пока маршрутов нет.
+        </ng-template>
+      </p-scrollPanel>
+    </div>
+  </ng-template>
+
+
+  <ng-template pTemplate="footer">
+    <div class="footer-wrapper">
+      <div class="spacer02"></div>
+      <p-button label="Добавить маршрут" [disabled]="disabledAdd" (click)="addRoute()"></p-button>
+      <div class="spacer03"></div>
+      <p-button label="Удалить все" styleClass="p-button-danger" (onClick)="removeAllRoutes()"></p-button>
+      <div class="spacer02"></div>
+    </div>
+  </ng-template>
+
+</p-sidebar>
+<p-button (click)="displaySidebar = true" icon="pi pi-arrow-left" class="plus"></p-button>
+

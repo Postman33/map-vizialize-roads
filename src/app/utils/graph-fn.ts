@@ -30,7 +30,7 @@ export function buildGraphFromJson(graphData: any): Graph {
   // add edges to the graph
   for (const edge of graphData.edges) {
     const startCoords = edge.geometry.coordinates
-    const edgeDistance = haversineDistance(startCoords[0][1], startCoords[0][0], startCoords[1][1], startCoords[1][0]);
+    const edgeDistance = haversineDistance(startCoords[0][0], startCoords[0][1], startCoords[1][0], startCoords[1][1]);
     edge.properties.distance = edgeDistance
 
     edge.properties.snowfall_sum = edge.properties.snowfall_next * edgeDistance
@@ -86,7 +86,7 @@ export function longestPathByWeight(
       }
 
     } catch (e) {
-      console.log('err')
+      //console.log('err')
     }
   });
   return longest;
@@ -115,4 +115,50 @@ export function getPathCoordinates(path: Array<number>, graphVE: UndirectedGraph
     pathCoordinates.push(nodeCoordinates);
   });
   return pathCoordinates
+}
+// Ребра принадлежащие path
+export function v2e(path: any, graph: Graph): Set<EdgeProperties>{
+
+  let edges: Set<EdgeProperties> = new Set<EdgeProperties>();
+  for (let i = 0; i < path.length - 1; i++) {
+    graph.forEachEdge((edge, attributes, source, target) => {
+      if (((source == path[i]) && (target == path[i+1])) || ((target == path[i]) && (source == path[i+1]))){
+        edges.add(graph.getEdgeAttributes(edge) as EdgeProperties);
+      }
+    });
+
+  }
+return edges
+}
+
+// Ребра не принадлежащие path
+export function v2e_nin(path: any, graph: Graph): Set<EdgeProperties>{
+  let eges_in = v2e(path,graph);
+
+  let edges: Set<EdgeProperties> = new Set<EdgeProperties>();
+  for (let i = 0; i < path.length - 1; i++) {
+    graph.forEachEdge((edge, attributes, source, target) => {
+      if (!eges_in.has(graph.getEdgeAttributes(edge) as EdgeProperties)){
+        edges.add(graph.getEdgeAttributes(edge) as EdgeProperties);
+      }
+    });
+
+  }
+  return edges
+}
+
+
+export function edges_clear_by_path(path: number[], graph: Graph): Graph {
+  const newGraph = graph.copy();  // Создаем копию исходного графа
+
+  for (let i = 0; i < path.length - 1; i++) {
+    newGraph.forEachEdge((edge, attributes, source, target) => {
+      if ((+source == path[i] && +target == path[i+1]) || (+target == path[i] && +source == path[i+1])) {
+        // Нашли ребро из path, обнуляем атрибут snowfall_sum
+        newGraph.setEdgeAttribute(edge, 'snowfall_sum', 0);
+      }
+    });
+  }
+
+  return newGraph;  // Возвращаем новый граф с обнуленными весами ребер из path
 }
