@@ -1,49 +1,67 @@
 <div id="map"></div>
-<div id='legend' class='legend'>
-  <div style="text-align: center; padding-bottom: 5px">Интенсивность снегопада</div>
-  <div><span style='background-color: #008000;'></span>Низкая (0-5)</div>
-  <div><span style='background-color: #FFA500;'></span>Средняя (5-10)</div>
-  <div><span style='background-color: #FF0000;'></span>Высокая (>10)</div>
-</div>
 
-<p-sidebar [(visible)]="displaySidebar" position="left" [fullScreen]="false" [modal]="false">
-  <ng-template pTemplate="header">
-    <div style="width: 90%; display: flex; justify-content: space-evenly;">
-      <div class="blue-bar"></div>
-      <div>
-        <img style="margin-left: auto;" width="60" height="40" src="assets/logo_snow_plow_truck_frnt.jpg" alt="">
-      </div>
+<p-sidebar [(visible)]="sidebarStatusIsActive" position="left" [fullScreen]="false" [modal]="false">
+  <ng-template pTemplate="header" class="blue-light-bar">
+    <div
+      style="width: 90%; display: flex;  flex-direction: column; align-items: center; font-family: cursive; color: white">
+      <img width="60" height="40" src="assets/logo_snow_plow_truck_frnt.png" alt="">
+      ПАНЕЛЬ УПРАВЛЕНИЯ
     </div>
-    <div style="width: 100%">
-      Меню
-    </div>
-
-
   </ng-template>
-
-
   <ng-template pTemplate="content">
     <div class="card flex justify-content-center">
       <h3 class="centered-button">Маршруты</h3>
-      <p-scrollPanel [style]="{ width: '100%', height:'70vh' }" styleClass="custombar1">
+      <p-scrollPanel [style]="{ width: '100%', height:'70vh' }" styleClass="custombar1" #scrollPanel>
         <div *ngIf="routes.length > 0; else textNoRoutes">
-        <div *ngFor="let route of routes; let i = index">
-          <p-card>
-            <div class="route-wrapper">
-              <div class="route-info">
-                <b>Маршрут {{i + 1}}</b>
+          <div *ngFor="let route of routes; let i = index" #routeList>
+            <p-card
+              [ngClass]="{
+      'card-normal': activeRouteIndex === null,
+      'card-dim': activeRouteIndex !== null && activeRouteIndex !== i,
+      'card-highlight': activeRouteIndex === i
+    }"
+              (mouseenter)="selectLayerByCard_ME($event, route, i)"
+              (mouseleave)="deselectLayerByCard_ML($event, i)"
+            >
+              <div class="route-wrapper">
+                <div class="route-info">
+                  <b>Маршрут {{i + 1}}</b>
+                </div>
+                <div class="route-indicator" [style.background-color]="routesColors[i]"></div>
               </div>
-              <div class="route-indicator" [style.background-color]="colors[i]"></div>
-            </div>
-            <div>Эффективность уборки</div>
-            <p-progressBar [value]="route.efficacy" [showValue]="true"></p-progressBar>
-            <h4> Перекрытие другими маршрутами:</h4>
-            <p-progressBar [value]="route.overlay" [showValue]="true"></p-progressBar>
 
-            <h4> Часы работы: {{ route.hours }}</h4>
-          </p-card>
-          <hr>
-        </div>
+              <div class="text-with-info-tooltip">
+                <h4>Эффективность</h4>
+                <p-button icon="pi pi-question" styleClass="p-button-rounded  p-button-text p-button-raised"
+                          pTooltip="Эффективность уборки снега. Чем больше, тем лучше" tooltipZIndex="20050"
+                          [disabled]="true"
+                ></p-button>
+              </div>
+              <p-progressBar [value]="route.efficacy" [showValue]="true">
+              </p-progressBar>
+
+
+              <div class="text-with-info-tooltip">
+                <h4> Перекрытие другими маршрутами:</h4>
+                <p-button icon="pi pi-question" styleClass="p-button-rounded  p-button-text p-button-raised"
+                          pTooltip="Если больше 0%, значит маршрут использует чужие маршруты, за которые отвечает другая техника.
+              Чем ближе к 100%, тем хуже." tooltipZIndex="20050" [disabled]="true"
+                ></p-button>
+              </div>
+              <p-progressBar [value]="route.overlay" [showValue]="true">
+              </p-progressBar>
+
+              <div class="text-with-info-tooltip">
+                <h4>Часы работы {{ route.hours }}</h4>
+                <p-button icon="pi pi-question" styleClass="p-button-rounded  p-button-text p-button-raised"
+                          pTooltip="Сколько по времени работает техника на данном маршруте" tooltipZIndex="20050"
+                          [disabled]="true"
+                ></p-button>
+              </div>
+
+            </p-card>
+            <hr>
+          </div>
         </div>
 
         <ng-template #textNoRoutes>
@@ -57,13 +75,23 @@
   <ng-template pTemplate="footer">
     <div class="footer-wrapper">
       <div class="spacer02"></div>
-      <p-button label="Добавить маршрут" [disabled]="disabledAdd" (click)="addRoute()"></p-button>
+      <p-button *ngIf="isMapLoaded; else spinner" label="Добавить маршрут" [disabled]="buttonAddIsDisabled"
+                (click)="addRoute()"></p-button>
+      <ng-template #spinner>
+        <p-button [disabled]="true"><i class="pi pi-spin pi-spinner" style="font-size: 2rem"></i></p-button>
+      </ng-template>
       <div class="spacer03"></div>
-      <p-button label="Удалить все" styleClass="p-button-danger" (onClick)="removeAllRoutes()"></p-button>
+      <p-button *ngIf="isMapLoaded; else spinner2" label="Удалить все" styleClass="p-button-danger"
+                (onClick)="removeAllRoutes()"></p-button>
+      <ng-template #spinner2>
+        <p-button styleClass="p-button-danger" [disabled]="true">
+          <i class="pi pi-spin pi-spinner" style="font-size: 2rem"></i>
+        </p-button>
+      </ng-template>
       <div class="spacer02"></div>
     </div>
   </ng-template>
 
 </p-sidebar>
-<p-button (click)="displaySidebar = true" icon="pi pi-arrow-left" class="plus"></p-button>
+<p-button (click)="sidebarStatusIsActive = true" icon="pi pi-arrow-left" class="plus"></p-button>
 

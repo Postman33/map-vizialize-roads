@@ -7,3 +7,10 @@
 @import "style_primeng.scss";
 @import "primeicons/primeicons.css";
 
+div.p-sidebar-header {
+  background-color: #5777a5;
+}
+button.p-ripple.p-element.p-sidebar-close.p-sidebar-icon.p-link{
+  color: white;
+  background-color: rgba(10, 54, 34, 0.4);
+}

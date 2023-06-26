@@ -1,21 +1,11 @@
-import Graph, {MultiGraph, MultiUndirectedGraph, UndirectedGraph} from "graphology";
-import EdgeKey from "graphology-types";
+import Graph, {UndirectedGraph} from "graphology";
 import {haversineDistance} from "./math";
-
-interface NodeProperties {
-  coordinates: [number, number];
-}
 
 export interface EdgeProperties {
   source: number;
   target: number;
   snowfall_sum: number;
   distance: number;
-}
-
-interface GraphData {
-  nodes: Array<{ id: number; geometry: NodeProperties }>;
-  edges: Array<{ id: number; properties: EdgeProperties; geometry: { coordinates: Array<[number, number]> } }>;
 }
 
 export function buildGraphFromJson(graphData: any): Graph {
@@ -92,6 +82,7 @@ export function longestPathByWeight(
   return longest;
 }
 
+// Расчет
 export function calculateWeight(path: Array<number>, graph: Graph): number {
   let totalWeight = 0;
   for (let i = 0; i < path.length - 1; i++) {
@@ -108,6 +99,7 @@ export function calculateWeight(path: Array<number>, graph: Graph): number {
   return totalWeight;
 }
 
+// Получить координаты LineString по path в graphVE
 export function getPathCoordinates(path: Array<number>, graphVE: UndirectedGraph): [number, number][] {
   let pathCoordinates: [number, number][] = []
   path.forEach(nodeId => {
@@ -116,6 +108,7 @@ export function getPathCoordinates(path: Array<number>, graphVE: UndirectedGraph
   });
   return pathCoordinates
 }
+
 // Ребра принадлежащие path
 export function v2e(path: any, graph: Graph): Set<EdgeProperties>{
 
@@ -133,12 +126,12 @@ return edges
 
 // Ребра не принадлежащие path
 export function v2e_nin(path: any, graph: Graph): Set<EdgeProperties>{
-  let eges_in = v2e(path,graph);
+  let edges_in = v2e(path, graph);
 
   let edges: Set<EdgeProperties> = new Set<EdgeProperties>();
   for (let i = 0; i < path.length - 1; i++) {
     graph.forEachEdge((edge, attributes, source, target) => {
-      if (!eges_in.has(graph.getEdgeAttributes(edge) as EdgeProperties)){
+      if (!edges_in.has(graph.getEdgeAttributes(edge) as EdgeProperties)) {
         edges.add(graph.getEdgeAttributes(edge) as EdgeProperties);
       }
     });

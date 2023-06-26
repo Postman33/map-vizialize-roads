@@ -1,6 +1,5 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
-
 import { AppComponent } from './app.component';
 import { MapComponent } from './components/map/map.component';
 import {HttpClientModule} from "@angular/common/http";
@@ -11,6 +10,7 @@ import {ProgressBarModule} from "primeng/progressbar";
 import {CardModule} from "primeng/card";
 import {FieldsetModule} from "primeng/fieldset";
 import {ScrollPanelModule} from "primeng/scrollpanel";
+import { TooltipModule } from 'primeng/tooltip';
 
 @NgModule({
   declarations: [
@@ -26,7 +26,8 @@ import {ScrollPanelModule} from "primeng/scrollpanel";
     ProgressBarModule,
     CardModule,
     FieldsetModule,
-    ScrollPanelModule
+    ScrollPanelModule,
+    TooltipModule
   ],
   providers: [],
   bootstrap: [AppComponent]
