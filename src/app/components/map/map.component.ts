@@ -17,6 +17,7 @@ import {intensityColor} from '../../utils/color'
 import Graph from "graphology";
 import {getRoadLayerName, getSegmentLayerNames} from "../../utils/namespaces";
 import {ScrollPanel} from "primeng/scrollpanel";
+import {range} from "rxjs";
 
 @Component({
   selector: 'app-map',
@@ -335,22 +336,26 @@ export class MapComponent implements OnInit {
   private viewIntensity_MOUSELEAVE(layerID: number | string) {
     this.map.getCanvas().style.cursor = '';
 
-    if (this.map.getLayer(getRoadLayerName(layerID))) {
       let ids = this.store.get('ids') as number[]
       for (let id of ids) {
-        if (this.map.getLayer(getSegmentLayerNames(id)))
-          this.map.removeLayer(getSegmentLayerNames(id))
-
-        if (this.map.getSource(getSegmentLayerNames(id)))
-          this.map.removeSource(getSegmentLayerNames(id))
+        this.removeSegmentLayersANDSources(id);
       }
-    }
-    for (let i = 0; i < this.routes.length; i++) {
-      this.map.setPaintProperty(getRoadLayerName(i), "line-opacity", 1)
+    if (this.map.getLayer(getRoadLayerName(layerID))) {
+      for (let i = 0; i < this.routes.length; i++) {
+        if (this.map.getLayer(getRoadLayerName(i))) this.map.setPaintProperty(getRoadLayerName(i), "line-opacity", 1)
+      }
     }
   }
 
-  // Часть подсветки интенсивности осадков. Создание слоев и источников при входе указателя мыши
+  private removeSegmentLayersANDSources(id: number) {
+    if (this.map.getLayer(getSegmentLayerNames(id)))
+      this.map.removeLayer(getSegmentLayerNames(id))
+
+    if (this.map.getSource(getSegmentLayerNames(id)))
+      this.map.removeSource(getSegmentLayerNames(id))
+  }
+
+// Часть подсветки интенсивности осадков. Создание слоев и источников при входе указателя мыши
   private viewIntensity_MOUSEENTER(coords: [number, number][], path: Array<number>, graph: Graph, layerID: number) {
     let ids = this.addPathSegmentationToMap(coords, path, graph)
     this.store.set('ids', ids)
@@ -363,9 +368,19 @@ export class MapComponent implements OnInit {
 
   // Кнопка 'Очистить все', удаляет слои и источники, очищает список маршрутов.
   removeAllRoutes() {
+
     this.routes.forEach((value, index, array) => {
-      if (this.map.getLayer(getRoadLayerName(value.idLayer)))
+      if (this.map.getLayer(getRoadLayerName(value.idLayer))){
+
+        // Если остались неудаленные слои.
+        for (let id = 0; id < 200; id+=1) {
+          if (id > 10 && !this.map.getLayer(getSegmentLayerNames(id))) break
+            this.removeSegmentLayersANDSources(id);
+        }
+
         this.map.removeLayer(getRoadLayerName(value.idLayer));
+
+      }
 
       if (this.map.getSource(getRoadLayerName(value.idLayer)))
         this.map.removeSource(getRoadLayerName(value.idLayer));
