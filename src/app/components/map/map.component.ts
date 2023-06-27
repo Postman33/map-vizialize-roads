@@ -356,6 +356,10 @@ export class MapComponent implements OnInit {
 
 // Часть подсветки интенсивности осадков. Создание слоев и источников при входе указателя мыши
   private viewIntensity_MOUSEENTER(coords: [number, number][], path: Array<number>, graph: Graph, layerID: number) {
+    for (let id = 0; id < 200; id+=1) {
+      if (id > 10 && !this.map.getLayer(getSegmentLayerNames(id))) continue
+      this.removeSegmentLayersANDSources(id);
+    }
     let ids = this.addPathSegmentationToMap(coords, path, graph)
     this.store.set('ids', ids)
     this.map.getCanvas().style.cursor = 'pointer';
@@ -373,7 +377,7 @@ export class MapComponent implements OnInit {
 
         // Если остались неудаленные слои.
         for (let id = 0; id < 200; id+=1) {
-          if (id > 10 && !this.map.getLayer(getSegmentLayerNames(id))) break
+          if (id > 10 && !this.map.getLayer(getSegmentLayerNames(id))) continue
             this.removeSegmentLayersANDSources(id);
         }
 
