@@ -183,9 +183,8 @@ export class MapComponent implements OnInit {
       const edgeKeys = graphVE.edges(path[i]);
       let edgeId: string = "";
       let edgeIdPV: string = "";
-      let snowfall_sum_prev = 0;
-      let snowfall_sum = 0;
-      let snowfall_sum_next = 0;
+      let snowfall_sum_prev = -400;
+      let snowfall_sum = -400;
 
       if (i > 0) {
         const edgeKeysForPrevEdge = graphVE.edges(path[i - 1]);
@@ -199,16 +198,6 @@ export class MapComponent implements OnInit {
         }
       }
 
-      if (i < pathCoordinates.length - 2){
-        const edgeKeysForNextEdge = graphVE.edges(path[i + 1]);
-        for (const edgeKey of edgeKeysForNextEdge) {
-          const edgeData = graphVE.getEdgeAttributes(edgeKey) as EdgeProperties;
-          if ((edgeData.source === path[i ] && edgeData.target === path[i+1] || edgeData.source === path[i+1] && edgeData.target === path[i])) {
-            snowfall_sum_next = edgeData.snowfall_sum;
-            break
-          }
-        }
-      }
 
       for (const edgeKey of edgeKeys) {
         const edgeData = graphVE.getEdgeAttributes(edgeKey) as EdgeProperties;
@@ -222,8 +211,7 @@ export class MapComponent implements OnInit {
       // Предыдущий и послеующая интенсивность осадков. Необходимо чтобы сделать плавный цветовой градиент, чтобы не было резких переходов
       //  Цветовой градиент      [ 0, int1, 0.1, int1, 0.2, int2 ]
       let int2 = intensityColor(snowfall_sum)
-      let int1 = snowfall_sum_prev <= 0 ? int2 : intensityColor(snowfall_sum_prev)
-      let int3 = i == pathCoordinates.length - 2 ? int2 : intensityColor(snowfall_sum_next)
+      let int1 = snowfall_sum_prev <= -400 ? int2 : intensityColor(snowfall_sum_prev)
       // Удалим слои и источники, если они есть
       if (this.map.getLayer(getSegmentLayerNames(i)))
         this.map.removeLayer(getSegmentLayerNames(i))
