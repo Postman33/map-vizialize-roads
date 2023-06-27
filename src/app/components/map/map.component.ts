@@ -79,7 +79,6 @@ export class MapComponent implements OnInit {
 
     this.mapService.setMap(this.map);
     this.map.on("load", () => {
-      this.isMapLoaded = true;
       // Сделаем границы города Зеленограда, данные взяты с открытого источника
       this.dataService.getCityPolygon().subscribe(
         ({polygons, polygon, center}) => {
@@ -109,6 +108,7 @@ export class MapComponent implements OnInit {
           this.dataService.getGraphs().subscribe((graphs) => {
             let graph = graphs[5];
             this.graph = buildGraphFromJson(graph);
+            this.isMapLoaded = true;
           })
           this.addLineLayerOfRegion();
         })
@@ -152,7 +152,6 @@ export class MapComponent implements OnInit {
       lineMetrics: true
     } as mapboxgl.AnySourceData;
     this.map.addSource(routeId, source);
-
     // Добавляем слой линии маршрута, используя источник
     this.map.addLayer({
       'id': routeId,
@@ -161,7 +160,6 @@ export class MapComponent implements OnInit {
       'layout': {
         'line-join': 'round',
         'line-cap': 'round',
-
       },
       'metadata': {'GC': lineStringCoordinates, source: source},
       'paint': {
@@ -187,17 +185,31 @@ export class MapComponent implements OnInit {
       let edgeIdPV: string = "";
       let snowfall_sum_prev = 0;
       let snowfall_sum = 0;
+      let snowfall_sum_next = 0;
 
-      if (i > 1) {
+      if (i > 0) {
         const edgeKeysForPrevEdge = graphVE.edges(path[i - 1]);
         for (const edgeKey of edgeKeysForPrevEdge) {
           const edgeData = graphVE.getEdgeAttributes(edgeKey) as EdgeProperties;
           if ((edgeData.source === path[i - 1] && edgeData.target === path[i] || edgeData.source === path[i] && edgeData.target === path[i - 1])) {
             edgeIdPV = edgeKey;
             snowfall_sum_prev = edgeData.snowfall_sum;
+            break
           }
         }
       }
+
+      if (i < pathCoordinates.length - 2){
+        const edgeKeysForNextEdge = graphVE.edges(path[i + 1]);
+        for (const edgeKey of edgeKeysForNextEdge) {
+          const edgeData = graphVE.getEdgeAttributes(edgeKey) as EdgeProperties;
+          if ((edgeData.source === path[i ] && edgeData.target === path[i+1] || edgeData.source === path[i+1] && edgeData.target === path[i])) {
+            snowfall_sum_next = edgeData.snowfall_sum;
+            break
+          }
+        }
+      }
+
       for (const edgeKey of edgeKeys) {
         const edgeData = graphVE.getEdgeAttributes(edgeKey) as EdgeProperties;
         if (edgeData.source === path[i] && edgeData.target === path[i + 1] || edgeData.source === path[i + 1] && edgeData.target === path[i]) {
@@ -210,8 +222,8 @@ export class MapComponent implements OnInit {
       // Предыдущий и послеующая интенсивность осадков. Необходимо чтобы сделать плавный цветовой градиент, чтобы не было резких переходов
       //  Цветовой градиент      [ 0, int1, 0.1, int1, 0.2, int2 ]
       let int2 = intensityColor(snowfall_sum)
-      let int1 = snowfall_sum_prev == 0 ? int2 : intensityColor(snowfall_sum_prev)
-
+      let int1 = snowfall_sum_prev <= 0 ? int2 : intensityColor(snowfall_sum_prev)
+      let int3 = i == pathCoordinates.length - 2 ? int2 : intensityColor(snowfall_sum_next)
       // Удалим слои и источники, если они есть
       if (this.map.getLayer(getSegmentLayerNames(i)))
         this.map.removeLayer(getSegmentLayerNames(i))
@@ -245,7 +257,6 @@ export class MapComponent implements OnInit {
           edgeId: edgeId
         },
         'paint': {
-          'line-color': int2,
           'line-gradient': [
             'interpolate',
             ['linear'],
@@ -255,7 +266,7 @@ export class MapComponent implements OnInit {
             0.1,
             int1,   // Цвет по середине градиента
             0.2,
-            int2      // Конечный цвет градиента
+            int2,      // Конечный цвет градиента
           ],
           'line-width': 8,
           'line-opacity-transition': {
@@ -395,7 +406,7 @@ export class MapComponent implements OnInit {
     this.activeRouteIndex = layerID
     let path = route.path;
     let coords = getPathCoordinates(path, this.graph)
-    this.viewIntensity_MOUSEENTER(coords, path, this.graph, layerID);
+    this.viewIntensity_MOUSEENTER(coords, path, layerID == 0 ? this.graph : this.routes[layerID - 1].new_graph, layerID);
 
     let layer = this.map.getLayer((getRoadLayerName(layerID))) as mapboxgl.LineLayer
     let linestring: LineString = layer.metadata.source.data.geometry
