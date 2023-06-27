@@ -397,7 +397,6 @@ export class MapComponent implements OnInit {
     let coords = getPathCoordinates(path, this.graph)
     this.viewIntensity_MOUSEENTER(coords, path, this.graph, layerID);
 
-
     let layer = this.map.getLayer((getRoadLayerName(layerID))) as mapboxgl.LineLayer
     let linestring: LineString = layer.metadata.source.data.geometry
     let points = turf.lineString(linestring.coordinates)
@@ -417,11 +416,8 @@ export class MapComponent implements OnInit {
 
 
   scrollToIndex(index: number) {
-    // Сначала дождитесь, пока Angular соберет список элементов DOM.
     if (this.routeList.toArray()[index]) {
-      // Получите позицию элемента, до которого вы хотите прокрутить.
       const position = this.routeList.toArray()[index].nativeElement.offsetTop;
-      // Используйте эту позицию, чтобы прокрутить p-scrollPanel до этого элемента.
       this.scrollPanel.scrollTop(position);
     }
   }
@@ -485,12 +481,10 @@ export class MapComponent implements OnInit {
     highIntensity.style.fontSize = '14px';
     popupContent.appendChild(highIntensity);
 
-    // Применение стилей к контейнеру
     popupContent.classList.add('legend');
     popupContent.style.backgroundColor = 'rgba(255, 255, 255, 0.5)';
 
     this.popup = new mapboxgl.Popup({})
-
     this.popup.addTo(this.map).setDOMContent(popupContent)
 
   }
